@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>帮你选车 - 推荐结果</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .source-tag {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s;
+        }
+
+        .result-card:hover {
+            transform: translateX(5px);
+        }
+
+        .result-card.hot {
+            border-left-color: #ff5722;
+            background: linear-gradient(135deg, #fff5f2 0%, #fff 100%);
+        }
+
+        .result-card.recommend {
+            border-left-color: #4caf50;
+            background: linear-gradient(135deg, #f1f8e9 0%, #fff 100%);
+        }
+
+        .rank {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: 700;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .rank.gold {
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+        }
+
+        .rank.silver {
+            background: linear-gradient(135deg, #c0c0c0 0%, #808080 100%);
+        }
+
+        .rank.bronze {
+            background: linear-gradient(135deg, #cd7f32 0%, #8b4513 100%);
+        }
+
+        .car-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .car-price {
+            color: #ff5722;
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .car-sales {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .car-score {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .match-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .tag {
+            background: #e0e0e0;
+            color: #666;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .match-score {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .match-score h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .match-number {
+            font-size: 48px;
+            font-weight: 700;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin: 20px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .no-result {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .your-answers {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .answer-item {
+            margin-bottom: 5px;
+        }
+
+        .answer-label {
+            color: #999;
+        }
+
+        .answer-value {
+            color: #333;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 为你推荐</h1>
+            <p class="subtitle">基于你的偏好 + 真实销量数据</p>
+            <span class="source-tag">📊 数据来源：汽车之家 2026 年 1 月销量榜</span>
+        </div>
+
+        <div id="your-answers" class="your-answers"></div>
+
+        <div class="match-score">
+            <h3>最佳匹配度</h3>
+            <div class="match-number" id="top-match">--</div>
+            <div>综合匹配度</div>
+        </div>
+
+        <div class="section-title">🎯 为你精选</div>
+
+        <div id="results">
+            <div class="loading">正在匹配你的偏好...</div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-secondary" onclick="location.href='test.html'">重新测试</button>
+            <button class="btn btn-primary" onclick="shareResult()">📤 分享结果</button>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px; color: #999; font-size: 12px;">
+            数据来源：汽车之家 2026 年 1 月销量榜<br>
+            仅供参考，实际购车请到店试驾
+        </div>
+    </div>
+
+    <script>
+        // 修正后的车型数据库
+        const carDatabase = [
+            {
+                id: 1,
+                name: "小米 YU7",
+                price: 25.35,
+                priceMax: 32.99,
+                priceText: "25.35-32.99 万",
+                sales: 37869,
+                score: 4.50,
+                type: "SUV",
+                energy: "纯电",
+                brand: "国产",
+                tags: ["新能源", "SUV", "智能科技"]
+            },
+            {
+                id: 2,
+                name: "博越 L",
+                price: 9.99,
+                priceMax: 12.69,
+                priceText: "9.99-12.69 万",
+                sales: 34176,
+                score: 4.54,
+                type: "SUV",
+                energy: "燃油",
+                brand: "国产",
+                tags: ["国产", "SUV", "高性价比"]
+            },
+            {
+                id: 3,
+                name: "星愿",
+                price: 6.88,
+                priceMax: 9.88,
+                priceText: "6.88-9.88 万",
+                sales: 29007,
+                score: 4.53,
+                type: "轿车",
+                energy: "纯电",
+                brand: "国产",
+                tags: ["国产", "小型车", "经济实惠"]
+            },
+            {
+                id: 4,
+                name: "问界 M7",
+                price: 24.98,
+                priceMax: 37.98,
+                priceText: "24.98-37.98 万",
+                sales: 26454,
+                score: 4.58,
+                type: "SUV",
+                energy: "增程",
+                brand: "国产",
+                tags: ["增程式", "SUV", "华为智驾"]
+            },
+            {
+                id: 5,
+                name: "速腾",
+                price: 13.99,
+                priceMax: 17.29,
+                priceText: "13.99-17.29 万",
+                sales: 25316,
+                score: 4.38,
+                type: "轿车",
+                energy: "燃油",
+                brand: "合资",
+                tags: ["合资", "紧凑型轿车", "德系品质"]
+            },
+            {
+                id: 6,
+                name: "轩逸",
+                price: 7.99,
+                priceMax: 17.49,
+                priceText: "7.99-17.49 万",
+                sales: 24209,
+                score: 4.67,
+                type: "轿车",
+                energy: "燃油",
+                brand: "合资",
+                tags: ["合资", "家用轿车", "舒适省油"]
+            },
+            {
+                id: 7,
+                name: "星越 L",
+                price: 14.77,
+                priceMax: 17.97,
+                priceText: "14.77-17.97 万",
+                sales: 23815,
+                score: 4.63,
+                type: "SUV",
+                energy: "燃油",
+                brand: "国产",
+                tags: ["国产", "SUV", "豪华感"]
+            },
+            {
+                id: 8,
+                name: "朗逸",
+                price: 8.00,
+                priceMax: 15.19,
+                priceText: "8.00-15.19 万",
+                sales: 23481,
+                score: 4.27,
+                type: "轿车",
+                energy: "燃油",
+                brand: "合资",
+                tags: ["合资", "国民轿车", "保值"]
+            },
+            {
+                id: 9,
+                name: "途观 L",
+                price: 18.68,
+                priceMax: 26.68,
+                priceText: "18.68-26.68 万",
+                sales: 21330,
+                score: 3.86,
+                type: "SUV",
+                energy: "燃油",
+                brand: "合资",
+                tags: ["合资", "SUV", "德系"]
+            },
+            {
+                id: 10,
+                name: "帕萨特",
+                price: 16.45,
+                priceMax: 30.98,
+                priceText: "16.45-30.98 万",
+                sales: 20799,
+                score: 4.47,
+                type: "轿车",
+                energy: "燃油",
+                brand: "合资",
+                tags: ["合资", "商务轿车", "大气"]
+            },
+            {
+                id: 11,
+                name: "Model Y",
+                price: 26.35,
+                priceMax: 31.35,
+                priceText: "26.35-31.35 万",
+                sales: 16845,
+                score: 4.43,
+                type: "SUV",
+                energy: "纯电",
+                brand: "进口",
+                tags: ["进口", "SUV", "智能"]
+            },
+            {
+                id: 12,
+                name: "凯美瑞",
+                price: 17.18,
+                priceMax: 25.98,
+                priceText: "17.18-25.98 万",
+                sales: 17426,
+                score: 4.49,
+                type: "轿车",
+                energy: "燃油",
+                brand: "合资",
+                tags: ["合资", "中型轿车", "可靠"]
+            }
+        ];
+
+        // 选项文本映射
+        const optionTexts = {
+            "budget_low": "10 万以下",
+            "budget_mid": "10-15 万",
+            "budget_high": "15-25 万",
+            "budget_premium": "25 万以上",
+            "scenario_commute": "日常通勤",
+            "scenario_family": "家庭出行",
+            "scenario_business": "商务接待",
+            "scenario_offroad": "户外越野",
+            "energy_gas": "燃油车",
+            "energy_hybrid": "混合动力",
+            "energy_ev": "纯电动",
+            "energy_any": "无所谓",
+            "preference_looks": "外观设计",
+            "preference_performance": "动力性能",
+            "preference_comfort": "空间舒适",
+            "preference_tech": "科技配置",
+            "preference_value": "保值率",
+            "brand_domestic": "国产自主",
+            "brand_joint": "合资品牌",
+            "brand_import": "进口品牌",
+            "brand_any": "不看品牌"
+        };
+
+        // 计算匹配度 - 严格模式（必须每个条件都匹配）
+        function calculateMatch(car, answers) {
+            let score = 0;
+            let penalties = 0;
+
+            // ===== 1. 预算匹配（权重 40%）=====
+            const budgetMap = {
+                "budget_low": { min: 0, max: 12 },
+                "budget_mid": { min: 10, max: 16 },
+                "budget_high": { min: 15, max: 28 },
+                "budget_premium": { min: 25, max: 50 }
+            };
+
+            let budgetRange = budgetMap[answers[0]];
+            if (budgetRange) {
+                // 严格匹配：允许±1.5 万浮动
+                let lower = budgetRange.min - 1.5;
+                let upper = budgetRange.max + 1.5;
+                
+                if (car.price >= lower && car.price <= upper) {
+                    score += 40;
+                } else {
+                    penalties += 15; // 价格不符合扣分
+                }
+            }
+
+            // ===== 2. 场景匹配（权重 20%）=====
+            // SUV 默认适合家庭，轿车适合通勤
+            if (answers[1] === "scenario_family" && car.type === "SUV") {
+                score += 20;
+            } else if (answers[1] === "scenario_commute" && car.type === "轿车") {
+                score += 20;
+            } else if (answers[1] === "scenario_business") {
+                // 商务：偏大型轿车/SUV
+                if (car.name.includes("帕萨特") || car.name.includes("凯美瑞") || 
+                    car.name.includes("途观")) {
+                    score += 20;
+                } else {
+                    penalties += 10;
+                }
+            }
+
+            // ===== 3. 能源类型匹配（权重 20%）- 严格！=====
+            if (answers[2] !== "energy_any") {
+                let energyMatched = false;
+                if (answers[2] === "energy_gas" && car.energy === "燃油") {
+                    score += 20;
+                    energyMatched = true;
+                } else if (answers[2] === "energy_ev" && car.energy === "纯电") {
+                    score += 20;
+                    energyMatched = true;
+                } else if (answers[2] === "energy_hybrid" && 
+                          (car.energy === "增程" || car.energy === "混动")) {
+                    score += 20;
+                    energyMatched = true;
+                }
+                
+                if (!energyMatched) {
+                    penalties += 15; // 能源不匹配严重扣分
+                }
+            }
+
+            // ===== 4. 品牌匹配（权重 20%）- 严格！=====
+            if (answers[4] !== "brand_any") {
+                let brandMatched = false;
+                if (answers[4] === "brand_domestic" && car.brand === "国产") {
+                    score += 20;
+                    brandMatched = true;
+                } else if (answers[4] === "brand_joint" && car.brand === "合资") {
+                    score += 20;
+                    brandMatched = true;
+                } else if (answers[4] === "brand_import" && car.brand === "进口") {
+                    score += 20;
+                    brandMatched = true;
+                }
+                
+                if (!brandMatched) {
+                    penalties += 15; // 品牌不匹配严重扣分
+                }
+            }
+
+            // 最终分数不能为负
+            let finalScore = Math.max(0, score - penalties);
+            
+            // 如果有任何一个核心条件完全不匹配，给个低分提示
+            if (penalties > 30) {
+                finalScore = Math.round((finalScore / 100) * 50); // 最多给 50%
+            }
+            
+            return finalScore;
+        }
+
+        // 显示用户答案
+        function showAnswers(answers) {
+            const html = `
+                <div style="margin-bottom: 8px;"><strong>你的选择：</strong></div>
+                <div class="answer-item"><span class="answer-label">预算：</span><span class="answer-value">${optionTexts[answers[0]] || answers[0]}</span></div>
+                <div class="answer-item"><span class="answer-label">场景：</span><span class="answer-value">${optionTexts[answers[1]] || answers[1]}</span></div>
+                <div class="answer-item"><span class="answer-label">能源：</span><span class="answer-value">${optionTexts[answers[2]] || answers[2]}</span></div>
+                <div class="answer-item"><span class="answer-label">品牌：</span><span class="answer-value">${optionTexts[answers[4]] || answers[4]}</span></div>
+            `;
+            document.getElementById('your-answers').innerHTML = html;
+        }
+
+        // 渲染结果
+        function renderResults(matchedCars) {
+            const container = document.getElementById('results');
+            
+            if (matchedCars.length === 0) {
+                container.innerHTML = `
+                    <div class="no-result">
+                        <h3>😕 没有找到匹配的车</h3>
+                        <p>试试调整一下你的偏好？</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = matchedCars.map((item, index) => {
+                const car = item.car;
+                const match = item.match;
+                
+                let rankClass = '';
+                let rankText = index + 1;
+                if (index === 0) { rankClass = 'gold'; rankText = '1'; }
+                else if (index === 1) { rankClass = 'silver'; rankText = '2'; }
+                else if (index === 2) { rankClass = 'bronze'; rankText = '3'; }
+
+                let cardClass = '';
+                if (index === 0) cardClass = 'hot';
+                else if (index < 3) cardClass = 'recommend';
+
+                const tagsHtml = car.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+
+                return `
+                    <div class="result-card ${cardClass}">
+                        <div style="display: flex; align-items: center;">
+                            <span class="rank ${rankClass}">${rankText}</span>
+                            <div style="flex: 1;">
+                                <div class="car-name">
+                                    ${car.name} 
+                                    <span class="car-score">${car.score}分</span>
+                                    <span class="match-badge">匹配${match}%</span>
+                                </div>
+                                <div class="car-price">${car.priceText}</div>
+                                <div class="car-sales">📈 月销 ${car.sales.toLocaleString()} 辆</div>
+                                <div class="tags">${tagsHtml}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        // 分享功能
+        function shareResult() {
+            const text = '帮我选车 - 根据我的偏好推荐了这些车，你也来试试！';
+            if (navigator.share) {
+                navigator.share({
+                    title: '帮你选车',
+                    text: text,
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('链接已复制到剪贴板！');
+            }
+        }
+
+        // 主逻辑
+        function init() {
+            const answersStr = localStorage.getItem('car_answers');
+            
+            if (!answersStr) {
+                document.getElementById('results').innerHTML = `
+                    <div class="no-result">
+                        <h3>😕 没有找到测试数据</h3>
+                        <p>请先完成测试</p>
+                        <button class="btn btn-primary" onclick="location.href='test.html'" style="margin-top: 20px;">去做测试</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const answers = JSON.parse(answersStr);
+            showAnswers(answers);
+
+            // 计算每辆车的匹配度
+            const matchedCars = carDatabase.map(car => ({
+                car: car,
+                match: calculateMatch(car, answers)
+            }));
+
+            // 按匹配度排序
+            matchedCars.sort((a, b) => b.match - a.match);
+
+            // 过滤掉匹配度太低的（<50%）
+            const filtered = matchedCars.filter(item => item.match >= 50);
+
+            // 显示最高匹配度
+            document.getElementById('top-match').textContent = filtered[0]?.match || 0;
+
+            // 渲染结果
+            renderResults(filtered.slice(0, 6));
+        }
+
+        init();
+    </script>
+</body>
+</html>
